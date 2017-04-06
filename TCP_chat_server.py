@@ -58,9 +58,13 @@ class NewClient(threading.Thread):                              #专用于新用
             self.sock.send("请输入你的昵称：".encode('utf8'))
             name = self.sock.recv(RECV_BUFFER)
 
-            while True:                                                         #待修改  应该为查找数据库 昵称 看是否有重复
-                for key in Namelist.keys():
-                    if Namelist[key] == name.decode('utf8'):               #检查是否有重名的客户端
+            sql = "select name from user "  # #查找数据库 昵称 看是否有重复
+            self.cursor.execute(sql)
+            namelist = self.cursor.fetchall()
+
+            while True:
+                for row in namelist:
+                    if row[0] == name.decode('utf8'):               #检查是否有重名的客户端
                         self.sock.send("聊天室已有该名字用户，请重新输入".encode('utf8'))
                         name = self.sock.recv(RECV_BUFFER)
                         self.samename = 1
@@ -87,7 +91,7 @@ class NewClient(threading.Thread):                              #专用于新用
             name = mysql_name.encode('utf8')
             Namelist[self.sock] = name.decode('utf8')
 
-
+        self.sock.send("你已进入聊天室".encode('utf8'))
         broadcast_data(self.sock, "%s 进入房间\n" % name.decode('utf8'))   #通知已在线的用户，新用户的加入
 
 

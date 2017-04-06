@@ -64,33 +64,6 @@ if __name__ == "__main__":
         t.join()
 
     print("连接已断开")
-    '''
-    while 1:
-
-        rlist = [s]
-
-        # Get the list sockets which are readable
-        read_list, write_list, error_list = select.select(rlist , [], [])
-
-        for sock in read_list:
-            # incoming message from remote server
-            if sock == s:
-                data = sock.recv(4096)
-                if not data:
-                    print('\nDisconnected from chat server')
-                    sys.exit()
-                else:
-                    # print data
-                    sys.stdout.write(data.decode('utf8'))
-                    prompt()
-
-                if data == "saying":
-                    msg = sys.stdin.readline()
-                    s.send(msg.encode('utf8'))
-                    prompt()'''
-
-
-            # user entered a message
 
 
 
