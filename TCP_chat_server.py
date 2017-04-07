@@ -143,27 +143,31 @@ if __name__ == "__main__":
         #通过select函数选出所有read请求的socket
         #print("要处理的请求有",len(read_sockets))
         for sock in read_sockets:                                                        #对有read请求的socket进行处理
-            if sock == server_socket:                                  #如果是服务器socket的请求，那就是有新的用户接入
-                sockfd, addr = server_socket.accept()
-                t = NewClient(sockfd, addr)
-                t.start()
-                CONNECTION_LIST.append(sockfd)
-                #print('新加入一个用户')
+            try:                                                           #当用户连接但是没有登陆就断开时，会报错
+                if sock == server_socket:                                  #如果是服务器socket的请求，那就是有新的用户接入
+                    sockfd, addr = server_socket.accept()
+                    t = NewClient(sockfd, addr)
+                    t.start()
+                    CONNECTION_LIST.append(sockfd)
+                    #print('新加入一个用户')
 
-            else:
-                try:
-                    data = sock.recv(RECV_BUFFER)                       #如果不是服务器socket  就将他说的话广播
-                    data = data.decode('utf8')
-                    #print(data)
-                    if data:
-                        broadcast_data(sock, "\r" + '<' + Namelist[sock] + '> ' + data)
-                except:
-                    broadcast_data(sock, "用户 %s 断开连接" % Namelist[sock])             #出现异常 说明该用户已经断开连接
-                    print("Client (%s, %s) is offline" % addr)
-                    sock.close()
-                    CONNECTION_LIST.remove(sock)                                         #清除该用户的socket列表数据 以及字典数据
-                    Namelist.pop(sock)
-                    continue
+                else:
+                    try:
+                        data = sock.recv(RECV_BUFFER)                       #如果不是服务器socket  就将他说的话广播
+                        data = data.decode('utf8')
+                        #print(data)
+                        if data:
+                            broadcast_data(sock, "\r" + '<' + Namelist[sock] + '> ' + data)
+                    except:
+                        broadcast_data(sock, "用户 %s 断开连接" % Namelist[sock])             #出现异常 说明该用户已经断开连接
+                        print("Client (%s, %s) is offline" % addr)
+                        sock.close()
+                        CONNECTION_LIST.remove(sock)                                         #清除该用户的socket列表数据 以及字典数据
+                        Namelist.pop(sock)
+                        continue
+            except:
+                print("没登陆就走了")
+                CONNECTION_LIST.remove(sock)
 
     server_socket.close()
 
