@@ -2,7 +2,9 @@
 import socket, select
 import threading
 import pymysql   #提示找不到pymysql.connect时，使用anaconda 安装库     #anaconda命令行输入conda install pymysql
-
+import re
+from langrensha import File_Send_Client_Class
+from langrensha import File_Send_Server_Class
 
 class NewClient(threading.Thread):                              #专用于新用户创建名字时，等待用的  避免新用户输入名字是阻塞主循环
     def __init__(self,sock,addr):
@@ -21,26 +23,6 @@ class NewClient(threading.Thread):                              #专用于新用
         self.cursor = self.connection.cursor()
 
     def run(self):
-        '''
-        global Namelist
-        global CONNECTION_LIST
-        print("Client (%s, %s) connected" % self.addr)                      #与用户通信 获取名字
-        self.sock.send("请输入你的名字：".encode('utf8'))
-        name = self.sock.recv(RECV_BUFFER)
-        while True:
-            for key in Namelist.keys():
-                if Namelist[key] == name.decode('utf8'):               #检查是否有重名的客户端
-                    self.sock.send("聊天室已有该名字用户，请重新输入".encode('utf8'))
-                    name = self.sock.recv(RECV_BUFFER)
-                    self.samename = 1
-                    break
-            if self.samename == 1 :
-                self.samename = 0
-                continue
-            else:
-                break
-        Namelist[self.sock] = name.decode('utf8')
-        broadcast_data(self.sock, "%s 进入房间\n" % name.decode('utf8'))   #通知已在线的用户，新用户的加入'''
         global Namelist
         global CONNECTION_LIST
         self.init_mysql()                                                   #建立数据库连接
@@ -69,7 +51,7 @@ class NewClient(threading.Thread):                              #专用于新用
                         name = self.sock.recv(RECV_BUFFER)
                         self.samename = 1
                         break
-                if self.samename == 1 :
+                if self.samename == 1:
                     self.samename = 0
                     continue
                 else:
@@ -93,17 +75,9 @@ class NewClient(threading.Thread):                              #专用于新用
 
         self.sock.send("你已进入聊天室".encode('utf8'))
         broadcast_data(self.sock, "%s 进入房间\n" % name.decode('utf8'))   #通知已在线的用户，新用户的加入
-
-
-
-
-
-        self.connection.commit()                                         #数据库连接关闭
+        self.connection.commit()  # 数据库连接关闭
         self.cursor.close()
         self.connection.close()
-
-
-
 
 
 
@@ -119,9 +93,7 @@ def broadcast_data (sock, message):                                       #定�
                 CONNECTION_LIST.remove(socket)
                 Namelist.pop(sock)
 
-
 if __name__ == "__main__":
-
 
     CONNECTION_LIST = []                                                              #用于记录已连接人的socket
     RECV_BUFFER = 4096
@@ -131,7 +103,7 @@ if __name__ == "__main__":
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind(("127.0.0.1", PORT))                                           #服务器IP
     server_socket.listen(10)
-
+    File_Send_re = re.compile("发送文件给(.*)")
     CONNECTION_LIST.append(server_socket)                                              #将服务器socket加入连接列表
 
     print("Chat server started on port " + str(PORT))
@@ -156,8 +128,29 @@ if __name__ == "__main__":
                         data = sock.recv(RECV_BUFFER)                       #如果不是服务器socket  就将他说的话广播
                         data = data.decode('utf8')
                         #print(data)
+                        '''
                         if data:
+                            broadcast_data(sock, "\r" + '<' + Namelist[sock] + '> ' + data)'''
+
+                        if File_Send_re.match(data) :
+                            mat = File_Send_re.match(data)
+                            file_need = mat.group(1)
+                            sock.send("god_code:文件发送端".encode('utf8'))
+
+
+                            for key in Namelist.keys():
+                                if Namelist[key] == file_need:
+                                    File_Sock_Need = key
+                                    break
+                            File_Sock_Need.send("god_code:文件接收端".encode('utf8'))
+                            File_Sock_Need_peername = File_Sock_Need.getpeername()
+
+                            sock.send(str(File_Sock_Need_peername[0]+" "+str(File_Sock_Need_peername[1])).encode('utf8'))
+
+                        else :
                             broadcast_data(sock, "\r" + '<' + Namelist[sock] + '> ' + data)
+
+
                     except:
                         broadcast_data(sock, "用户 %s 断开连接" % Namelist[sock])             #出现异常 说明该用户已经断开连接
                         print("Client (%s, %s) is offline" % addr)
@@ -166,8 +159,8 @@ if __name__ == "__main__":
                         Namelist.pop(sock)
                         continue
             except:
-                print("没登陆就走了")
                 CONNECTION_LIST.remove(sock)
+                print("没登陆就走了")
 
     server_socket.close()
 
