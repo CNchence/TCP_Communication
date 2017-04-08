@@ -3,8 +3,6 @@ import socket, select
 import threading
 import pymysql   #提示找不到pymysql.connect时，使用anaconda 安装库     #anaconda命令行输入conda install pymysql
 import re
-from langrensha import File_Send_Client_Class
-from langrensha import File_Send_Server_Class
 
 class NewClient(threading.Thread):                              #专用于新用户创建名字时，等待用的  避免新用户输入名字是阻塞主循环
     def __init__(self,sock,addr):

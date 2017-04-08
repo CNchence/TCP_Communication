@@ -1,7 +1,7 @@
 import socket,sys
 import threading
-import langrensha.File_Send_Server_Class as FileServer
-import langrensha.File_Send_Client_Class as FileClient
+import File_Send_Server_Class as FileServer
+import File_Send_Client_Class as FileClient
 
 
 class Getmessage(threading.Thread):
