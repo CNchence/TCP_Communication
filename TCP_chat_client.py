@@ -4,6 +4,9 @@ import File_Send_Server_Class as FileServer
 import File_Send_Client_Class as FileClient
 
 
+
+
+
 class Getmessage(threading.Thread):
     def __init__(self,s,lock):
         threading.Thread.__init__(self)
@@ -31,7 +34,7 @@ class Getmessage(threading.Thread):
                     socketname = self.s.getsockname()
                     host = str(socketname[0])
                     port = str(socketname[1])
-                    print(host,port)
+                    print(host, port)
                     t4 = File_server_threading(host, int(port)+10)
                     threadlist.append(t4)
                     t4.start()
@@ -49,7 +52,7 @@ class Sendmessage(threading.Thread):
         self.s = s
         self.lock = lock
     def run(self):
-        while 1 :
+        while 1:
             try:
                 self.lock.acquire()
                 self.data = input(' ')
@@ -59,7 +62,7 @@ class Sendmessage(threading.Thread):
                 sys.exit()
 #############################################文件_服务器类  接收端####################################################
 class File_server_threading(threading.Thread,FileServer.File_server):
-    def __init__(self,host,port):
+    def __init__(self, host, port):
         FileServer.File_server.__init__(self,host,port)
         threading.Thread.__init__(self)
     def run(self):
@@ -76,11 +79,10 @@ class File_client_threading(threading.Thread,FileClient.File_client):
 
 # main function
 if __name__ == "__main__":
-
-    host = "127.0.0.1"
+    host = "2001:da8:8002:31f4::2:bef1"  # 服务器ip地址以及端口号，使用之前请先修改
     port = 5000
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
 
     #s.settimeout(2)
     threadlist = []

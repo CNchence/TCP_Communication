@@ -24,7 +24,7 @@ class File_client():
         self.md5 = self.cal_md5()
 
     def send_file(self):
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)                                  #修改为AF_INET就为ipv4的通信
         server_address = (self.HOST,self.PORT)
         self.get_file_info()                              #创建代传输文件的信息
         print('文件名：', self.file_name, '文件大小：', self.file_size, 'md5校验码：', self.md5)
@@ -46,10 +46,10 @@ class File_client():
                     send_file = fr.read(send_size)
                     sent_size += send_size
                     sock.send(send_file)
-                print("传输完毕，关闭连接")
         except:
             print("无法连接")
         finally:
+            print("传输完毕")
             sock.close()
 
 
