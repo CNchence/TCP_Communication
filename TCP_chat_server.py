@@ -82,7 +82,7 @@ class NewClient(threading.Thread):                              #专用于新用
 
 
 
-def broadcast_data (sock, message):                                       #定义广播函数，将文字发给除了说话人以及主线程的其他人
+def broadcast_data (sock, message):                                       #定义广播函数，将文字发给除了说话人以及服务器以外的其他人
     for socket in CONNECTION_LIST :
         if socket != server_socket and socket != sock and socket in Namelist.keys():
             try :
@@ -97,7 +97,7 @@ def broadcast_data (sock, message):                                       #定�
 if __name__ == "__main__":
 
     CONNECTION_LIST = []                                                              #用于记录已连接人的socket
-    RECV_BUFFER = 4096
+    RECV_BUFFER = 1024
     PORT = 5000                                                                       #服务器端口号，使用之前请修改
 
     server_socket = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)                 #建立socket服务器 开始监听  修改为AF_INET就为IPV4

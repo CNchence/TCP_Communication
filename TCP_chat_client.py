@@ -79,7 +79,7 @@ class File_client_threading(threading.Thread,FileClient.File_client):
 
 # main function
 if __name__ == "__main__":
-    host = "2001:da8:8002:31f4::2:bef1"  # 服务器ip地址以及端口号，使用之前请先修改
+    host = "2001:da8:8002:31f4::3:bd93"  # 服务器ip地址以及端口号，使用之前请先修改
     port = 5000
 
     s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
