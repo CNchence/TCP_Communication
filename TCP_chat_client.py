@@ -17,10 +17,10 @@ class Getmessage(threading.Thread):
         while 1:
             try:
                 self.data = s.recv(1024)
-                if self.data.decode('utf8') == "god_code:文件发送端":
+                if self.data.decode('utf8') == "god_code:File sender":
 
                     self.lock.acquire()
-                    path = input("输入待发送文件的路径(比如:d:\\test.txt):")
+                    path = input("Enter the path to the file to send(e.g: d:\\test.txt):")
                     self.lock.release()
 
                     self.data = s.recv(1024)
@@ -30,7 +30,7 @@ class Getmessage(threading.Thread):
                     t3 = File_client_threading(host,int(port)+10,path)
                     threadlist.append(t3)
                     t3.start()
-                elif self.data.decode('utf8') == "god_code:文件接收端":
+                elif self.data.decode('utf8') == "god_code:File receiver":
                     socketname = self.s.getsockname()
                     host = str(socketname[0])
                     port = str(socketname[1])
@@ -79,7 +79,7 @@ class File_client_threading(threading.Thread,FileClient.File_client):
 
 # main function
 if __name__ == "__main__":
-    host = "2001:da8:8002:31f4::3:bd93"  # 服务器ip地址以及端口号，使用之前请先修改
+    host = "2001:da8:8002:31f4::7485"  # 服务器ip地址以及端口号，使用之前请先修改
     port = 5000
 
     s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
@@ -91,10 +91,10 @@ if __name__ == "__main__":
     try:
         s.connect((host, port))
     except:
-        print('无法连接服务器')
+        print('can not connect to the server')
         sys.exit()
 
-    print('已连接服务器，可以通信')
+    print('Connected to server, can communicate')
 
 
     t1 = Getmessage(s,lock)
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     for t in threadlist:
         t.join()
 
-    print("连接已断开")
+    print("Disconnected")
 
 
 

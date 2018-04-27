@@ -29,16 +29,16 @@ class NewClient(threading.Thread):                              #专用于新用
         print("Client (%s, %s, %s, %s) connected" % self.addr)              #注意，ipv6的addr是4个数据组成   如果要改为ipv4，addr只有两位  所以要去掉两个%s
         #print("Client (%s, %s) connected" % self.addr)                     #ipv4
 
-        self.sock.send("欢迎连接,请输入你的用户名：".encode('utf8'))     #请用户输入用户名 并查找数据库 是否存在
+        self.sock.send("Welcome, please enter your username".encode('utf8'))     #请用户输入用户名 并查找数据库 是否存在
         username = self.sock.recv(RECV_BUFFER)
 
         sql = "select name,password from user where username = \"%s\""  # 查询数据
         data = (username.decode('utf8'))
         if self.cursor.execute(sql % data) == 0:                                  #如果不存在，引导用户新建
-            self.sock.send("输入的用户名不存在，请新建用户".encode('utf8'))
-            self.sock.send("输入密码".encode('utf8'))
+            self.sock.send("Username does not exist,please create a new user".encode('utf8'))
+            self.sock.send("Enter password".encode('utf8'))
             password = self.sock.recv(RECV_BUFFER)
-            self.sock.send("请输入你的昵称：".encode('utf8'))
+            self.sock.send("Please enter your nickname:".encode('utf8'))
             name = self.sock.recv(RECV_BUFFER)
 
             sql = "select name from user "  # #查找数据库 昵称 看是否有重复
@@ -48,7 +48,7 @@ class NewClient(threading.Thread):                              #专用于新用
             while True:
                 for row in namelist:
                     if row[0] == name.decode('utf8'):               #检查是否有重名的客户端
-                        self.sock.send("聊天室已有该名字用户，请重新输入".encode('utf8'))
+                        self.sock.send("The nickname already exists, please re-enter".encode('utf8'))
                         name = self.sock.recv(RECV_BUFFER)
                         self.samename = 1
                         break
@@ -65,17 +65,17 @@ class NewClient(threading.Thread):                              #专用于新用
             userdata = self.cursor.fetchall()                                     #查找到数据库存在该用户名  引导用户登陆
             mysql_name = userdata[0][0]
             mysql_password = userdata[0][1]
-            self.sock.send("输入密码".encode('utf8'))
+            self.sock.send("Enter password".encode('utf8'))
             while True:
                 password = self.sock.recv(RECV_BUFFER)
                 if password.decode('utf8') == mysql_password:
                     break
-                self.sock.send("密码错误，请重新输入:".encode('utf8'))
+                self.sock.send("Wrong password, please re-enter".encode('utf8'))
             name = mysql_name.encode('utf8')
             Namelist[self.sock] = name.decode('utf8')
 
-        self.sock.send("你已进入聊天室".encode('utf8'))
-        broadcast_data(self.sock, "%s 进入房间\n" % name.decode('utf8'))   #通知已在线的用户，新用户的加入
+        self.sock.send("You have entered the chat room".encode('utf8'))
+        broadcast_data(self.sock, "%s enters the room\n" % name.decode('utf8'))   #通知已在线的用户，新用户的加入
         self.connection.commit()  # 数据库连接关闭
         self.cursor.close()
         self.connection.close()
@@ -94,6 +94,16 @@ def broadcast_data (sock, message):                                       #定�
                 CONNECTION_LIST.remove(socket)
                 Namelist.pop(sock)
 
+def get_host_ip():                 #use connect to google ipv6 dns to get self ipv6 ip address
+    try:
+        s = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+        s.connect(('2001:4860:4860::8888', 80))
+        ip = s.getsockname()[0]
+    finally:
+        s.close()
+
+    return ip
+
 if __name__ == "__main__":
 
     CONNECTION_LIST = []                                                              #用于记录已连接人的socket
@@ -104,21 +114,13 @@ if __name__ == "__main__":
     #server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)                  # IPV4
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)                 #操作系统会在服务器socket被关闭或服务器进程终止后马上释放该服务器的端口
 
+    iPv6_address = get_host_ip()
+    print("Server ipv6 address", iPv6_address)
 
-
-
-    ipconfig = subprocess.Popen("ipconfig", shell=True, stdout=subprocess.PIPE)              #用于自动寻找本机iPv6地址
-    ip_address = ipconfig.communicate()  # 保存ipconfig中的所有信息
-    ipv6_pattern = '(?:.{1,4}:){4}:.{1,4}:.{1,4}'
-
-    iPv6_address = re.findall(ipv6_pattern, str(ip_address))                                    #服务器自动获取ipv6地址
-    print("服务器IP:",iPv6_address[0])
-
-
-    server_socket.bind((iPv6_address[0], PORT))
+    server_socket.bind((iPv6_address, PORT))
     #server_socket.bind(("127.0.0.1", PORT))                                                            # 服务器IP,使用之前请修改  ipv4
     server_socket.listen(10)
-    File_Send_re = re.compile("发送文件给(.*)")
+    File_Send_re = re.compile("send file to (.*)")
     CONNECTION_LIST.append(server_socket)                                              #将服务器socket加入连接列表
 
     print("Chat server started on port " + str(PORT))
@@ -152,6 +154,7 @@ if __name__ == "__main__":
                         if File_Send_re.match(data) :
                             mat = File_Send_re.match(data)
                             file_need = mat.group(1)
+                            file_need = file_need.strip()
 
                             for key in Namelist.keys():
                                 if Namelist[key] == file_need:
@@ -159,19 +162,19 @@ if __name__ == "__main__":
                                     FindClient = True
                                     break
                             if FindClient :
-                                sock.send("god_code:文件发送端".encode('utf8'))
-                                File_Sock_Need.send("god_code:文件接收端".encode('utf8'))
+                                sock.send("god_code:File sender".encode('utf8'))
+                                File_Sock_Need.send("god_code:File receiver".encode('utf8'))
                                 File_Sock_Need_peername = File_Sock_Need.getpeername()
                                 sock.send(str(File_Sock_Need_peername[0]+" "+str(File_Sock_Need_peername[1])).encode('utf8'))
                             else :
-                                sock.send((mat.group(1)+"不存在或不在线").encode('utf8'))
+                                sock.send((mat.group(1)+" does not exist or is not online").encode('utf8'))
 
                         else :
                             broadcast_data(sock, "\r" + '<' + Namelist[sock] + '> ' + data)
 
 
                     except:
-                        broadcast_data(sock, "用户 %s 断开连接" % Namelist[sock])             #出现异常 说明该用户已经断开连接
+                        broadcast_data(sock, "%s disconnect" % Namelist[sock])             #出现异常 说明该用户已经断开连接
                         print("Client (%s, %s, %s, %s) is offline" % addr)                    #ipv6
                         #print("Client (%s, %s) is offline" % addr)                            # ipv4
                         sock.close()
@@ -180,7 +183,7 @@ if __name__ == "__main__":
                         continue
             except:
                 CONNECTION_LIST.remove(sock)
-                print("没登陆就走了")
+                print("Did not land and left")
 
     server_socket.close()
 

@@ -53,13 +53,13 @@ class File_server():
             server_address = (self.HOST, self.PORT)
             sock.bind(server_address)
             sock.listen(1)
-            print("用户向你发送文件，等待连接")
+            print("The user sends you a file and waits for the connection")
             client_socket, client_address = sock.accept()
-            print("%s 连接成功" % str(client_address))
+            print("%s Connection succeeded" % str(client_address))
 
             file_info_package = client_socket.recv(self.info_size)
             self.unpack_file_info(file_info_package)
-            print("文件名：",self.filename.decode('utf8'),"文件大小：",self.file_size)
+            print("File name: ",self.filename.decode('utf8'),"File size: ",self.file_size)
 
             '''
             file_frequency = float(self.file_size)/ float(self.BUFFER_SIZE)             #计算需要写入的次数
@@ -82,14 +82,14 @@ class File_server():
             if save_md5 != self.md5.decode('utf8'):
                 print(save_md5)
                 print(self.md5.decode('utf8'))
-                print('MD5 验证错误')
+                print('MD5 Validation error')
             else:
-                print("接收成功")
+                print("Received successfully")
 
         except socket.errno:
             print("Socket error")
         finally:
-            print("传输完毕")
+            print("Transfer completed")
             sock.close()
 
 
@@ -98,6 +98,6 @@ if __name__ == "__main__":
     hostname = socket.gethostname()
     #ip = socket.gethostbyname(hostname)
     #print("本机局域网ip地址为：",ip)
-    PORT_input = input("输入服务器端口：")
+    PORT_input = input("Enter the server port: ")
     a = File_server('2001:da8:8002:31f4::2:bef1',int(PORT_input))
     a.recv_file()
