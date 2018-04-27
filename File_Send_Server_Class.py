@@ -68,7 +68,7 @@ class File_server():
 
             recved_size = 0
             #self.PATH = input("输入保存地址(比如c:\桌面\):")
-            self.PATH = "f:\\"                             #注意 此处是接受文件的保存地址，在某些电脑上多线程配合不好，有可能导致崩溃，因此使用固定保存地址，当然也可以尝试自行输入的方式，当也要在程序运行时输入两次
+            self.PATH = "/home/leaguc/data"                             #注意 此处是接受文件的保存地址，在某些电脑上多线程配合不好，有可能导致崩溃，因此使用固定保存地址，当然也可以尝试自行输入的方式，当也要在程序运行时输入两次
             client_socket.send("ok".encode('utf8'))
             with open(self.PATH+self.filename.decode('utf8'),'wb') as fw:
                 while recved_size < self.file_size:
